@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 import nltk
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from nltk.corpus import stopwords
@@ -7,7 +8,7 @@ from nltk.stem import WordNetLemmatizer
 from src.utils.paths import RAW_DATA_DIR, PROCESSED_DATA_DIR
 
 
-def get_subbreddit_csv(subreddit_name):
+def get_subreddit_csv(subreddit_name):
     files = list(RAW_DATA_DIR.glob(f"{subreddit_name}_*.csv"))
 
     if not files:
@@ -17,7 +18,7 @@ def get_subbreddit_csv(subreddit_name):
 
 def apply_preprocessing(subreddit_name):
     # Reading in the subreddit data
-    file_name = get_subbreddit_csv(subreddit_name)
+    file_name = get_subreddit_csv(subreddit_name)
     df = pd.read_csv(file_name)
 
     # Apply preprocessing
@@ -42,6 +43,21 @@ def preprocess(text):
     return processed_text
 
 
+def get_sentiment(text):
+    analyzer = SentimentIntensityAnalyzer()
+
+    scores = analyzer.polarity_scores(text)
+    return scores["compound"]
+
+
+def save_processed_data(processed_data):
+    os.makedirs(PROCESSED_DATA_DIR, exist_ok=True)
+    filename = f"{PROCESSED_DATA_DIR}/Cowboys.csv"
+    processed_data.to_csv(filename, index=False)
+    print(f"Saved processed data to {filename}")
+
+
 if __name__ == "__main__":
-    df = apply_preprocessing("cowboys")
-    print(df["processed_title"].head())
+    processed_df = apply_preprocessing("cowboys")
+    processed_df["title_sentiment"] = processed_df["processed_title"].apply(get_sentiment)
+    save_processed_data(processed_df)
