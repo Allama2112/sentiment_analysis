@@ -52,7 +52,7 @@ def get_sentiment(text):
 
 def save_processed_data(processed_data):
     os.makedirs(PROCESSED_DATA_DIR, exist_ok=True)
-    filename = f"{PROCESSED_DATA_DIR}/Cowboys.csv"
+    filename = f"{PROCESSED_DATA_DIR}/cowboys.csv"
     processed_data.to_csv(filename, index=False)
     print(f"Saved processed data to {filename}")
 
