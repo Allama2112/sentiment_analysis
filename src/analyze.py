@@ -25,10 +25,21 @@ def plot_sentiment(subreddit):
     # Reading it in as a csv
     sentiment_df = pd.read_csv(file_name)
 
-    # TODO: Put in a col with numbers 1-100 for easier plotting on x-axis
+    # Getting the average sentiment of the last 100 posts
+    avg_sentiment = sentiment_df[sentiment_df["title_sentiment"] != 0]["title_sentiment"].mean().round(4)
+
+    # Indexing the data frame
+    sentiment_df["post_number"] = sentiment_df.index + 1
+
+    # TODO: Find a way to link the posts based on clicking on the points
 
     # Creating a scatter plot of the last 100 posts
-    plt.scatter(x=sentiment_df["id"], y=sentiment_df["title_sentiment"])
+    plt.scatter(x=sentiment_df["post_number"], y=sentiment_df["title_sentiment"])
+    plt.xticks(range(1, len(sentiment_df)), rotation=90)
+    plt.xlabel("Post Number")
+    plt.ylabel("Sentiment")
+    plt.suptitle(f"Sentiment of the Past {len(sentiment_df)} Posts on r/{subreddit}")
+    plt.title(f"Average Sentiment of Non-Neutral Posts: {avg_sentiment}", fontsize=10)
     plt.show()
 
 
