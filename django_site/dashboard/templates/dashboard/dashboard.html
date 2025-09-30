@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Reddit Sentiment Dashboard</title>
+</head>
+<style>
+  body { font_family: sans-serif; margin; 2rem; }
+  .error { color: red; }
+  .post { background: #f5f5f5; padding: 1rem; border-radius: 8px; margin-bottom: .5rem; }
+</style>
+<body>
+  <h1>📈 Reddit Sentiment Dashboard</h1>
+  {% if error %}
+    <p class="error">{{ error }}</p>
+  {% else %}
+    <h2>Latest Analysis: {{ summary.filename }}</h2>
+    <p><strong>Average Sentiment: </strong>{{ summary.avg_sentiment }}</p>
+    <p><strong>Number of Posts: </strong>{{ summary.num_posts }}</p>
+
+    <h3>Sample Posts</h3>
+    {% for post in summary.top_posts %}
+      <div class="Post">{{ post }}</div>
+    {% endfor %}
+  {% endif %}
+</body>
+</html>

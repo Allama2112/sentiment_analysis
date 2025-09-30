@@ -11,11 +11,26 @@ def get_processed_data(subreddit_name):
     if not files:
         raise FileNotFoundError("No processed data at this directory")
     if len(files) > 1:
-        # If there are more than one files for that subreddit, return the first one
+        # If there are more than one files for that subreddit
         print("There are more than one file for this subreddit at this directory, returning the first one")
-        return files[0]
-    # Otherwise return the file path
+    # Return the first file
     return files[0]
+
+
+def summarise_processed_data(subreddit):
+    file_name = get_processed_data(subreddit)
+
+    # Reading it in as a csv
+    sentiment_df = pd.read_csv(file_name)
+
+    summary = {
+        "file_name": subreddit,
+        "num_posts": len(sentiment_df),
+        "avg_sentiment": sentiment_df[sentiment_df["title_sentiment"] != 0]["title_sentiment"].mean().round(4),
+        "top_posts": sentiment_df["title"].head().tolist()
+    }
+
+    return sentiment_df, summary
 
 
 def plot_sentiment(subreddit):
