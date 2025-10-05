@@ -18,9 +18,13 @@
     <p><strong>Average Sentiment: </strong>{{ summary.avg_sentiment }}</p>
     <p><strong>Number of Posts: </strong>{{ summary.num_posts }}</p>
 
-    <h3>Sample Posts</h3>
-    {% for post in summary.top_posts %}
-      <div class="Post">{{ post }}</div>
+    <h3>Top Positive Posts</h3>
+    {% for pos_post in summary.top_positive_posts %}
+      <div class="Post">{{ pos_post }}</div>
+    {% endfor %}
+    <h3>Top Negative Posts</h3>
+    {% for neg_post in summary.top_negative_posts %}
+      <div class="Post">{{ neg_post }}</div>
     {% endfor %}
   {% endif %}
 </body>

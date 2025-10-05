@@ -1,5 +1,10 @@
 from django.shortcuts import render
-from .utils import summarise_processed_data
+from .utils import analyze_subreddit_sentiment
+
+
+def home(request):
+    # Home view
+    return render(request, "dashboard/home.html")
 
 
 def dashboard_view(request):
@@ -11,7 +16,7 @@ def dashboard_view(request):
 
     if subreddit:
         try:
-            sentiment_df, summary = summarise_processed_data(subreddit)
+            sentiment_df, summary = analyze_subreddit_sentiment(subreddit)
         except FileNotFoundError:
             error = f"No data found for subreddit '{subreddit}'"
 
@@ -22,6 +27,3 @@ def dashboard_view(request):
     }
 
     return render(request, "dashboard/dashboard.html", context)
-
-
-
