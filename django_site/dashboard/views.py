@@ -9,21 +9,17 @@ def home(request):
 
 def dashboard_view(request):
     # Get subreddit from query params
-    subreddit = request.GET.get("subreddit", None)
-    sentiment_df = None
-    summary = None
-    error = None
+    subreddit_name = request.GET.get("subreddit", "").strip()
+    context = {}
 
-    if subreddit:
-        try:
-            sentiment_df, summary = analyze_subreddit_sentiment(subreddit)
-        except FileNotFoundError:
-            error = f"No data found for subreddit '{subreddit}'"
+    if subreddit_name:
+        result = analyze_subreddit_sentiment(subreddit_name)
 
-    context = {
-        "subreddit": subreddit,
-        "summary": summary,
-        "error": error
-    }
+    # If we cannot retrieve data for that subreddit
+    if not result["success"]:
+        context["error"] = result["error"]
+
+    else:
+        context["summary"] = result["summary"]
 
     return render(request, "dashboard/dashboard.html", context)

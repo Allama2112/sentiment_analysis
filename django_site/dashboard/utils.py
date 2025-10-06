@@ -6,6 +6,7 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
+from prawcore.exceptions import Forbidden
 
 # Load environment variables
 load_dotenv()
@@ -22,24 +23,36 @@ def collect_reddit_posts(subreddit_name, limit=LIMIT):
     reddit = praw.Reddit(
         client_id=CLIENT_ID,
         client_secret=CLIENT_SECRET,
-        user_agent=USER_AGENT
+        user_agent=USER_AGENT,
+        username=os.getenv("REDDIT_USERNAME"),
+        password=os.getenv("REDDIT_PASSWORD")
     )
 
     subreddit = reddit.subreddit(subreddit_name)
-    posts = []
 
-    for post in subreddit.hot(limit=limit):
-        posts.append({
-            "id": post.id,
-            "title": post.title,
-            "score": post.score,
-            "url": post.url,
-            "num_comments": post.num_comments,
-            "created_utc": post.created_utc
-        })
+    posts = list(subreddit.hot(limit=limit))
+    if not posts:
+        posts = list(subreddit.new(limit=limit))
+    if not posts:
+        posts = list(subreddit.top(time_filter='month', limit=limit))
+    if not posts:
+        return pd.DataFrame()
 
-    df = pd.DataFrame(posts)
-    return df
+    # Trying hot, then new, then top
+    for listing in [subreddit.hot, subreddit.new, lambda limit: subreddit.top(time_filter="month")]:
+        posts = list(listing(limit=limit))
+        if posts:
+            return pd.DataFrame([{
+                "id": post.id,
+                "title": post.title,
+                "score": post.score,
+                "url": post.url,
+                "num_comments": post.num_comments,
+                "created_utc": post.created_utc
+            } for post in posts])
+
+    # No posts found
+    return pd.DataFrame()
 
 
 def preprocess_text(text):
@@ -64,14 +77,29 @@ def analyze_subreddit_sentiment(subreddit_name, limit=LIMIT):
     """Fetch, preprocess, and analyze sentiment for a subreddit"""
 
     # Fetch latest posts
-    df = collect_reddit_posts(subreddit_name, limit=limit)
+    try:
+        df = collect_reddit_posts(subreddit_name, limit=limit)
+    except Forbidden:
+        return {
+            "success": False,
+            "error": f"Access to r/{subreddit_name} is restricted or forbidden.",
+            "data": None,
+            "summary": None
+        }
 
     if df.empty:
-        raise ValueError(f"No posts found for subreddit '{subreddit_name}'")
+        return {
+            "success": False,
+            "error": f"No posts found on r/{subreddit_name}. The subreddit may be restricted or empty.",
+            "data": None,
+            "summary": None
+        }
 
     # Preprocess and analyze sentiment
     df["processed_title"] = df["title"].apply(preprocess_text)
     df["title_sentiment"] = df["processed_title"].apply(analyze_sentiment)
+
+    # TODO: Instead of finding average of all titles, only do non-zero titles
 
     # Summarize sentiment results
     summary = {
@@ -82,4 +110,9 @@ def analyze_subreddit_sentiment(subreddit_name, limit=LIMIT):
         "top_negative_posts": df.sort_values(by="title_sentiment", ascending=True)["title"].head(5).tolist()
     }
 
-    return df, summary
+    return {
+        "success": True,
+        "error": None,
+        "data": df,
+        "summary": summary
+    }

@@ -1,15 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Home</title>
-</head>
-<body>
+{% extends "dashboard/base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
     <h1>Search Subreddits</h1>
-    <form action="/dashboard/" method="get">
-        <label for="subreddit">Enter Subreddit Name:</label>
-        <input type="text" id="subreddit" name="subreddit" placeholder="Ex: nfl">
+    <form action="{% url 'dashboard' %}" method="get">
+        <label for="subreddit">Enter Subreddit Name:</label><br>
+        <input type="text" id="subreddit" name="subreddit" placeholder="Ex: nfl" required>
         <button type="submit">View Sentiment</button>
     </form>
-</body>
-</html>
+{% endblock %}

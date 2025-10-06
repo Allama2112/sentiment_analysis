@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}My Sentiment App{% endblock %}</title>
+
+    <link rel="stylesheet" href="{% static 'dashboard/styles.css' %}">
+
+    <script src="{% static 'dashboard/header_footer.js' %}" defer></script>
+
+    <style>
+        body { font_family: sans-serif; margin; 2rem; }
+        .error { color: red; }
+        .post { background: #f5f5f5; padding: 1rem; border-radius: 8px; margin-bottom: .5rem; }
+    </style>
+</head>
+<body>
+    <page-header></page-header>
+
+    <!-- Page content -->
+    <main style="padding: 20px;">
+        {% block content %}
+        {% endblock %}
+    </main>
+</body>
+</html>
