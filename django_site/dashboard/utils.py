@@ -99,13 +99,11 @@ def analyze_subreddit_sentiment(subreddit_name, limit=LIMIT):
     df["processed_title"] = df["title"].apply(preprocess_text)
     df["title_sentiment"] = df["processed_title"].apply(analyze_sentiment)
 
-    # TODO: Instead of finding average of all titles, only do non-zero titles
-
     # Summarize sentiment results
     summary = {
         "subreddit": subreddit_name,
         "num_posts": len(df),
-        "avg_sentiment": round(df["title_sentiment"].mean(), 4),
+        "avg_sentiment": round(df.loc[df["title_sentiment"] != 0, "title_sentiment"].mean(), 4),
         "top_positive_posts": df.sort_values(by="title_sentiment", ascending=False)["title"].head(5).tolist(),
         "top_negative_posts": df.sort_values(by="title_sentiment", ascending=True)["title"].head(5).tolist()
     }
