@@ -16,7 +16,7 @@
   {% else %}
   <h2>Analysis of r/{{ summary.subreddit }}</h2>
     <p><strong>Number of Posts: </strong>{{ summary.num_posts }}</p>
-    <p><strong>Average Sentiment: </strong>{{ summary.avg_sentiment }}</p>
+    <p><strong>Average Non-Neutral Sentiment: </strong>{{ summary.avg_sentiment }}</p>
 
     <h3>Top Positive Posts</h3>
     {% for pos_post in summary.top_positive_posts %}
@@ -27,5 +27,11 @@
     {% for neg_post in summary.top_negative_posts %}
       <div class="Post">{{ neg_post }}</div>
     {% endfor %}
+
+<form action="{% url 'dashboard' %}" method="get" style="margin-top: 1rem">
+  <input type="hidden" name="subreddit" value="{{ summary.subreddit }}">
+  <input type="hidden" name="refresh" value="true">
+  <button type="submit">Refresh Posts</button>
+</form>
   {% endif %}
 {% endblock %}

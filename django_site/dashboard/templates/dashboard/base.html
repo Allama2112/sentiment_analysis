@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}My Sentiment App{% endblock %}</title>
-
     <link rel="stylesheet" href="{% static 'dashboard/styles.css' %}">
+    {% block extra_css %}{% endblock %}
 
     <script src="{% static 'dashboard/header_footer.js' %}" defer></script>
 
