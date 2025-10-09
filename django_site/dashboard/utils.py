@@ -7,6 +7,8 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from prawcore.exceptions import Forbidden
+from django.core.cache import cache
+from django.conf import settings
 
 # Load environment variables
 load_dotenv()
@@ -76,24 +78,34 @@ def analyze_sentiment(text):
 def analyze_subreddit_sentiment(subreddit_name, limit=LIMIT):
     """Fetch, preprocess, and analyze sentiment for a subreddit"""
 
+    cache_key = f"sentiment_{subreddit_name.lower()}_{limit}"
+    cached_result = cache.get(cache_key)
+
+    if cached_result:
+        return cached_result
+
     # Fetch latest posts
     try:
         df = collect_reddit_posts(subreddit_name, limit=limit)
     except Forbidden:
-        return {
+        result = {
             "success": False,
             "error": f"Access to r/{subreddit_name} is restricted or forbidden.",
             "data": None,
             "summary": None
         }
+        cache.set(cache_key, result, getattr(settings, "CACHE_TTL", 600))
+        return result
 
     if df.empty:
-        return {
+        result = {
             "success": False,
             "error": f"No posts found on r/{subreddit_name}. The subreddit may be restricted or empty.",
             "data": None,
             "summary": None
         }
+        cache.set(cache_key, result, getattr(settings, "CACHE_TTL", 600))
+        return result
 
     # Preprocess and analyze sentiment
     df["processed_title"] = df["title"].apply(preprocess_text)
@@ -108,9 +120,13 @@ def analyze_subreddit_sentiment(subreddit_name, limit=LIMIT):
         "top_negative_posts": df.sort_values(by="title_sentiment", ascending=True)["title"].head(5).tolist()
     }
 
-    return {
+    result = {
         "success": True,
         "error": None,
         "data": df,
         "summary": summary
     }
+
+    # Cache the result for 10 minutes
+    cache.set(cache_key, result, getattr(settings, "CACHE_TTL", 600))
+    return result
