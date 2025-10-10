@@ -11,15 +11,21 @@ def home(request):
 def dashboard_view(request):
     # Get subreddit from query params
     subreddit_name = request.GET.get("subreddit", "").strip()
+
+    # Will refresh cache on request
     refresh = request.GET.get("refresh") == "true"
     context = {}
 
+    # If the subreddit is found
     if subreddit_name:
+        # Get the cache key
         cache_key = f"sentiment_{subreddit_name.lower()}_100"
 
+        # Delete the cache upon user request
         if refresh:
             cache.delete(cache_key)
 
+        # Call the function to get the analysis --> This will check cache for stored data
         result = analyze_subreddit_sentiment(subreddit_name)
 
         # If we cannot retrieve data for that subreddit
