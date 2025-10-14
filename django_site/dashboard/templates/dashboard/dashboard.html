@@ -28,6 +28,11 @@
       <div class="Post">{{ neg_post }}</div>
     {% endfor %}
 
+  {% if sentiment_plot %}
+    <h3>Sentiment Plot</h3>
+    <img src="data:image/png;base64,{{ sentiment_plot }}" alt="Sentiment Plot">
+  {% endif %}
+
 <form action="{% url 'dashboard' %}" method="get" style="margin-top: 1rem">
   <input type="hidden" name="subreddit" value="{{ summary.subreddit }}">
   <input type="hidden" name="refresh" value="true">

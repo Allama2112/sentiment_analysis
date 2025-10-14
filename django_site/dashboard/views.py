@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .utils import analyze_subreddit_sentiment
+from .utils import analyze_subreddit_sentiment, visualize_sentiment
 from django.core.cache import cache
 
 
@@ -33,5 +33,12 @@ def dashboard_view(request):
             context["error"] = result["error"]
         else:
             context["summary"] = result["summary"]
+
+        sentiment_plot_result = visualize_sentiment(subreddit_name)
+
+        if sentiment_plot_result["error_msg"] is not None:
+            context["error"] = sentiment_plot_result["error_msg"]
+        else:
+            context["sentiment_plot"] = sentiment_plot_result["plot"]
 
     return render(request, "dashboard/dashboard.html", context)
