@@ -1,0 +1,7 @@
+<form action="{% url 'dashboard' %}" method="get">
+    <label for="subreddit">Enter Subreddit Name:</label><br>
+    <input type="text" id="subreddit" name="subreddit" placeholder="Ex: nfl" required><br><br>
+    <label for="num_posts">Number of Posts:</label><br>
+    <input type="number" id="num_posts" name="num_posts" value=100 placeholder="Default: 100"><br><br>
+    <button type="submit">View Sentiment</button>
+</form>

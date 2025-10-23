@@ -4,12 +4,7 @@
 {% block content %}
   <h1>Reddit Sentiment Dashboard</h1>
 
-  <form action="/dashboard/" method="get">
-      <label for="subreddit">Enter Subreddit Name:</label><br>
-      <input type="text" id="subreddit" name="subreddit" placeholder="Ex: nfl"
-             value="{{ subreddit_name }}">
-      <button type="submit">View Sentiment</button>
-  </form>
+  {% include "dashboard/_subreddit_search.html" %}
 
   {% if error %}
     <p class="error">{{ error }}</p>
@@ -27,6 +22,24 @@
     {% for neg_post in summary.top_negative_posts %}
       <div class="Post">{{ neg_post }}</div>
     {% endfor %}
+
+<div class="plot-container">
+  {{ sentiment_plot|safe }}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    const plotElement = document.getElementById('sentiment_plot');
+    if (!plotElement) return;
+
+    plotElement.on('plotly_click', function(data){
+        const url = data.points[0].customdata;
+        if (url) {
+            window.open(url, '_blank');
+        }
+    });
+});
+</script>
 
 <form action="{% url 'dashboard' %}" method="get" style="margin-top: 1rem">
   <input type="hidden" name="subreddit" value="{{ summary.subreddit }}">
