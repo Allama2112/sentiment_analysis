@@ -3,9 +3,5 @@
 
 {% block content %}
     <h1>Search Subreddits</h1>
-    <form action="{% url 'dashboard' %}" method="get">
-        <label for="subreddit">Enter Subreddit Name:</label><br>
-        <input type="text" id="subreddit" name="subreddit" placeholder="Ex: nfl" required>
-        <button type="submit">View Sentiment</button>
-    </form>
+    {% include "dashboard/_subreddit_search.html" %}
 {% endblock %}

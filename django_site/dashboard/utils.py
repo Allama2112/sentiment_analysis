@@ -5,6 +5,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import io
 import base64
+import plotly.express as px
 
 from dotenv import load_dotenv
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
@@ -43,7 +44,6 @@ def collect_reddit_posts(subreddit_name, limit=LIMIT):
         praw.exceptions.Forbidden: If the subreddit is private or restricted.
         praw.exceptions.NotFounc: If the subreddit is not found.
     """
-
     cache_key = f"sentiment_{subreddit_name.lower()}_{limit}"
     cached_entry = cache.get(cache_key)
 
@@ -125,6 +125,7 @@ def apply_sentiment_analysis(raw_df):
     return raw_df
 
 
+# TODO: Figure out why this actually has 100 posts instead of 105
 def analyze_subreddit_sentiment(subreddit_name, limit=LIMIT):
     """Fetch, preprocess, and analyze sentiment for a subreddit"""
 
@@ -162,10 +163,9 @@ def analyze_subreddit_sentiment(subreddit_name, limit=LIMIT):
     return result
 
 
-# TODO: Call this function and display the graph in the dashboard view
-def visualize_sentiment(subreddit_name):
+def visualize_sentiment(subreddit_name, limit=LIMIT):
     # Collecting and analyzing the data
-    raw_df, err_msg = collect_reddit_posts(subreddit_name)
+    raw_df, err_msg = collect_reddit_posts(subreddit_name, limit)
 
     # If the reddit posts could not be collected
     if err_msg:
@@ -173,7 +173,7 @@ def visualize_sentiment(subreddit_name):
             "plot": None,
             "error_msg": err_msg
         }
-        return err_msg
+        return result
 
     # Apply sentiment analysis
     sentiment_df = apply_sentiment_analysis(raw_df)
@@ -181,30 +181,39 @@ def visualize_sentiment(subreddit_name):
     # Indexing the data frame
     sentiment_df["post_number"] = sentiment_df.index + 1
 
-    # Creating a scatter plot of the last 100 posts
-    fig, ax = plt.subplots(figsize=(10, 4))
-    ax.scatter(x=sentiment_df["post_number"], y=sentiment_df["title_sentiment"])
-    ax.set_xticks(range(1, len(sentiment_df)))
-    ax.tick_params(axis="x", rotation=90)
-    ax.set_xlabel("Post Number")
-    ax.set_ylabel("Sentiment")
-    ax.set_title(f"Sentiment of the Past {len(sentiment_df)} Posts on r/{subreddit_name}")
+    # Information to be displayed on hover
+    sentiment_df["hover_text"] = sentiment_df["hover_text"] = (sentiment_df["title"]
+                                                               + "<br>Sentiment: " + sentiment_df[
+                                                                   "title_sentiment"].round(2).astype(str)
+                                                               + "<br>Score: " + sentiment_df["score"].astype(str)
+                                                               )
 
-    # Setting the buffer
-    buf = io.BytesIO()
-    plt.tight_layout()
+    # Creating the interactable figure
+    interactable_fig = px.scatter(
+        sentiment_df,
+        x="post_number",
+        y="title_sentiment",
+        hover_name="title",
+        hover_data={"score": True, "title_sentiment": True, "hover_text": False},
+        text=None,
+        color="title_sentiment",
+        color_continuous_scale="RdBu"
+    )
 
-    # Saving the figure
-    fig.savefig(buf, format='png')
-    plt.close(fig)
-    buf.seek(0)
+    # Creating the on click action
+    interactable_fig.update_traces(
+        customdata=sentiment_df["url"],
+        hovertemplate="%{hovertext}<extra></extra>",
+    )
 
-    # Storing the plot in base 64
-    base64_plot = base64.b64encode(buf.read()).decode('utf-8')
-    buf.close()
+    # JavaScript click handler
+    interactable_fig.update_layout(
+        title="Interactive Sentiment Handler"
+    )
 
+    graph_html = interactable_fig.to_html(full_html=False, include_plotlyjs='cdn', div_id="sentiment_plot")
     result = {
-        "plot": base64_plot,
-        "error_msg": None
+        "plot": graph_html,
+        "error_msg": err_msg
     }
     return result
